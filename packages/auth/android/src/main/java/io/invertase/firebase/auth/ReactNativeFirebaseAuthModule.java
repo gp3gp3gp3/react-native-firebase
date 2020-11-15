@@ -1649,6 +1649,16 @@ class ReactNativeFirebaseAuthModule extends ReactNativeFirebaseModule {
       });
   }
 
+  @ReactMethod
+  public void useEmulator(String appName, String host, int port) {
+    Log.d(TAG, "useEmulator");
+    
+    FirebaseApp firebaseApp = FirebaseApp.getInstance(appName);
+    FirebaseAuth firebaseAuth = FirebaseAuth.getInstance(firebaseApp);
+
+    firebaseAuth.useEmulator(host, port);
+  }
+
   /* ------------------
    * INTERNAL HELPERS
    * ---------------- */

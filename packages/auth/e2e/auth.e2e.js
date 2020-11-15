@@ -15,7 +15,38 @@
  *
  */
 
+const TEST_EMAIL = 'test@test.com';
+const TEST_PASS = 'test1234';
+
+const DISABLED_EMAIL = 'disabled@account.com';
+const DISABLED_PASS = 'test1234';
+
 describe('auth()', () => {
+  before(async () => {
+    try {
+      await firebase.auth().createUserWithEmailAndPassword(TEST_EMAIL, TEST_PASS);
+    } catch (e) {
+      // they may already exist, that's fine
+    }
+    // Need a way to create the user but have it disabled immediately
+    // If we had the functions emulator running as well, it would work:
+    // https://stackoverflow.com/questions/43140441/how-to-disable-user-accounts-on-firebase-authentication-automatically#comment73363725_43141780
+    // try {
+    //   const userCredential = await firebase
+    //     .auth()
+    //     .createUserWithEmailAndPassword(DISABLED_EMAIL, DISABLED_PASS);
+    // } catch (e) {
+    //   // they may already exist, that's fine
+    // }
+  });
+
+  beforeEach(async () => {
+    if (firebase.auth().currentUser) {
+      await firebase.auth().signOut();
+      await Utils.sleep(50);
+    }
+  });
+
   describe('namespace', () => {
     it('accessible from firebase.app()', () => {
       const app = firebase.app();
@@ -39,6 +70,7 @@ describe('auth()', () => {
   });
 
   describe('applyActionCode()', () => {
+    // Needs a different setup to work against the auth emulator
     xit('works as expected', async () => {
       await firebase
         .auth()
@@ -127,16 +159,14 @@ describe('auth()', () => {
   });
 
   describe('signInWithCustomToken()', () => {
-    it('signs in with a admin sdk created custom auth token', async () => {
-      const email = 'test@test.com';
-      const pass = 'test1234';
-
+    // Needs a different setup when running against the emulator
+    xit('signs in with a admin sdk created custom auth token', async () => {
       const successCb = currentUserCredential => {
         const currentUser = currentUserCredential.user;
         currentUser.should.be.an.Object();
         currentUser.uid.should.be.a.String();
         currentUser.toJSON().should.be.an.Object();
-        currentUser.toJSON().email.should.eql(email);
+        currentUser.toJSON().email.should.eql(TEST_EMAIL);
         currentUser.isAnonymous.should.equal(false);
         currentUser.providerId.should.equal('firebase');
         currentUser.should.equal(firebase.auth().currentUser);
@@ -150,7 +180,7 @@ describe('auth()', () => {
 
       const user = await firebase
         .auth()
-        .signInWithEmailAndPassword(email, pass)
+        .signInWithEmailAndPassword(TEST_EMAIL, TEST_PASS)
         .then(successCb);
 
       const IdToken = await firebase.auth().currentUser.getIdToken();
@@ -162,7 +192,7 @@ describe('auth()', () => {
 
       await firebase.auth().signInWithCustomToken(token);
 
-      firebase.auth().currentUser.email.should.equal('test@test.com');
+      firebase.auth().currentUser.email.should.equal(TEST_EMAIL);
     });
   });
 
@@ -540,15 +570,12 @@ describe('auth()', () => {
 
   describe('signInWithEmailAndPassword()', () => {
     it('it should login with email and password', () => {
-      const email = 'test@test.com';
-      const pass = 'test1234';
-
       const successCb = currentUserCredential => {
         const currentUser = currentUserCredential.user;
         currentUser.should.be.an.Object();
         currentUser.uid.should.be.a.String();
         currentUser.toJSON().should.be.an.Object();
-        currentUser.toJSON().email.should.eql(email);
+        currentUser.toJSON().email.should.eql(TEST_EMAIL);
         currentUser.isAnonymous.should.equal(false);
         currentUser.providerId.should.equal('firebase');
         currentUser.should.equal(firebase.auth().currentUser);
@@ -562,14 +589,12 @@ describe('auth()', () => {
 
       return firebase
         .auth()
-        .signInWithEmailAndPassword(email, pass)
+        .signInWithEmailAndPassword(TEST_EMAIL, TEST_PASS)
         .then(successCb);
     });
 
-    it('it should error on login if user is disabled', () => {
-      const email = 'disabled@account.com';
-      const pass = 'test1234';
-
+    // Need to set these up differently to run against emulator
+    xit('it should error on login if user is disabled', () => {
       const successCb = () => Promise.reject(new Error('Did not error.'));
 
       const failureCb = error => {
@@ -580,15 +605,12 @@ describe('auth()', () => {
 
       return firebase
         .auth()
-        .signInWithEmailAndPassword(email, pass)
+        .signInWithEmailAndPassword(DISABLED_EMAIL, DISABLED_PASS)
         .then(successCb)
         .catch(failureCb);
     });
 
     it('it should error on login if password incorrect', () => {
-      const email = 'test@test.com';
-      const pass = 'test1234666';
-
       const successCb = () => Promise.reject(new Error('Did not error.'));
 
       const failureCb = error => {
@@ -601,7 +623,7 @@ describe('auth()', () => {
 
       return firebase
         .auth()
-        .signInWithEmailAndPassword(email, pass)
+        .signInWithEmailAndPassword(TEST_EMAIL, TEST_PASS + '666')
         .then(successCb)
         .catch(failureCb);
     });
@@ -631,14 +653,14 @@ describe('auth()', () => {
 
   describe('signInWithCredential()', () => {
     it('it should login with email and password', () => {
-      const credential = firebase.auth.EmailAuthProvider.credential('test@test.com', 'test1234');
+      const credential = firebase.auth.EmailAuthProvider.credential(TEST_EMAIL, TEST_PASS);
 
       const successCb = currentUserCredential => {
         const currentUser = currentUserCredential.user;
         currentUser.should.be.an.Object();
         currentUser.uid.should.be.a.String();
         currentUser.toJSON().should.be.an.Object();
-        currentUser.toJSON().email.should.eql('test@test.com');
+        currentUser.toJSON().email.should.eql(TEST_EMAIL);
         currentUser.isAnonymous.should.equal(false);
         currentUser.providerId.should.equal('firebase');
         currentUser.should.equal(firebase.auth().currentUser);
@@ -656,11 +678,9 @@ describe('auth()', () => {
         .then(successCb);
     });
 
-    it('it should error on login if user is disabled', () => {
-      const credential = firebase.auth.EmailAuthProvider.credential(
-        'disabled@account.com',
-        'test1234',
-      );
+    // Need to set these up differently to run against emulator
+    xit('it should error on login if user is disabled', () => {
+      const credential = firebase.auth.EmailAuthProvider.credential(DISABLED_EMAIL, DISABLED_PASS);
 
       const successCb = () => Promise.reject(new Error('Did not error.'));
 
@@ -678,7 +698,7 @@ describe('auth()', () => {
     });
 
     it('it should error on login if password incorrect', () => {
-      const credential = firebase.auth.EmailAuthProvider.credential('test@test.com', 'test1234666');
+      const credential = firebase.auth.EmailAuthProvider.credential(TEST_EMAIL, TEST_PASS + '666');
 
       const successCb = () => Promise.reject(new Error('Did not error.'));
 
@@ -770,9 +790,6 @@ describe('auth()', () => {
     });
 
     it('it should error on create if email in use', () => {
-      const email = 'test@test.com';
-      const pass = 'test123456789';
-
       const successCb = () => Promise.reject(new Error('Did not error.'));
 
       const failureCb = error => {
@@ -783,7 +800,7 @@ describe('auth()', () => {
 
       return firebase
         .auth()
-        .createUserWithEmailAndPassword(email, pass)
+        .createUserWithEmailAndPassword(TEST_EMAIL, TEST_PASS)
         .then(successCb)
         .catch(failureCb);
     });
@@ -824,7 +841,7 @@ describe('auth()', () => {
 
         return firebase
           .auth()
-          .fetchSignInMethodsForEmail('test@test.com')
+          .fetchSignInMethodsForEmail(TEST_EMAIL)
           .then(successCb)
           .catch(failureCb);
       }));

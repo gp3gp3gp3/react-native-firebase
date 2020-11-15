@@ -1,11 +1,32 @@
+// const TEST_EMAIL = 'test@test.com';
+// const TEST_PASS = 'test1234';
+
 const TEST_PHONE_A = '+447445255123';
 const TEST_CODE_A = '123456';
 
-// const TEST_PHONE_B = '+447445123457';
-// const TEST_CODE_B = '654321';
-
 describe('auth() => Phone', () => {
   before(async () => {
+    // Make sure we have a user connected with a phone number
+    // let userCredential = null;
+    // try {
+    //   userCredential = await firebase.auth().createUserWithEmailAndPassword(TEST_EMAIL, TEST_PASS);
+    // } catch (e) {
+    //   // they may already exist, that's fine
+    // }
+    // if (!userCredential) {
+    //   userCredential = await firebase.auth().signInWithEmailAndPassword(TEST_EMAIL, TEST_PASS);
+    // }
+    // const phoneSignIn = await firebase.auth().signInWithPhoneNumber(TEST_PHONE_A);
+
+    // // https://firebase.google.com/docs/reference/rest/auth#section-auth-emulator-smsverification
+    // const smsCodeFromREST = 'not-implemented';
+    // const credential = firebase.auth.PhoneAuthProvider.credential(
+    //   phoneSignIn.verificationId,
+    //   smsCodeFromREST,
+    // );
+    // disabled until code fetching from emulator REST API is finished
+    //firebase.auth().currentUser.updatePhoneNumber(credential);
+
     firebase.auth().settings.appVerificationDisabledForTesting = true;
     await firebase.auth().settings.setAutoRetrievedSmsCodeForPhoneNumber(TEST_PHONE_A, TEST_CODE_A);
     await Utils.sleep(50);
@@ -18,8 +39,10 @@ describe('auth() => Phone', () => {
     }
   });
 
-  describe('signInWithPhoneNumber', () => {
-    xit('signs in with a valid code', async () => {
+  // Needs different set up to run against emulator - you can get OOB codes via emulator REST API:
+  // https://firebase.google.com/docs/reference/rest/auth#section-auth-emulator-smsverification
+  xdescribe('signInWithPhoneNumber', () => {
+    it('signs in with a valid code', async () => {
       const confirmResult = await firebase.auth().signInWithPhoneNumber(TEST_PHONE_A);
       confirmResult.verificationId.should.be.a.String();
       should.ok(confirmResult.verificationId.length, 'verificationId string should not be empty');
@@ -41,9 +64,9 @@ describe('auth() => Phone', () => {
     });
   });
 
-  describe('verifyPhoneNumber', async () => {
+  // Needs different set up to run against emulator - these all require code fetching
+  xdescribe('verifyPhoneNumber', async () => {
     it('successfully verifies', async () => {
-      const TEST_PHONE_A = '+447445255123';
       const confirmResult = await firebase.auth().signInWithPhoneNumber(TEST_PHONE_A);
 
       await confirmResult.confirm(TEST_CODE_A);
@@ -51,7 +74,6 @@ describe('auth() => Phone', () => {
     });
 
     it('uses the autoVerifyTimeout when a non boolean autoVerifyTimeoutOrForceResend is provided', async () => {
-      const TEST_PHONE_A = '+447445255123';
       const confirmResult = await firebase.auth().signInWithPhoneNumber(TEST_PHONE_A);
 
       await confirmResult.confirm(TEST_CODE_A);
@@ -59,7 +81,6 @@ describe('auth() => Phone', () => {
     });
 
     it('throws an error with an invalid on event', async () => {
-      const TEST_PHONE_A = '+447445255123';
       const confirmResult = await firebase.auth().signInWithPhoneNumber(TEST_PHONE_A);
 
       await confirmResult.confirm(TEST_CODE_A);
@@ -80,7 +101,6 @@ describe('auth() => Phone', () => {
     });
 
     it('throws an error with an invalid observer event', async () => {
-      const TEST_PHONE_A = '+447445255123';
       const confirmResult = await firebase.auth().signInWithPhoneNumber(TEST_PHONE_A);
 
       await confirmResult.confirm(TEST_CODE_A);
@@ -101,7 +121,6 @@ describe('auth() => Phone', () => {
     });
 
     it('successfully runs verification complete handler', async () => {
-      const TEST_PHONE_A = '+447445255123';
       const confirmResult = await firebase.auth().signInWithPhoneNumber(TEST_PHONE_A);
 
       await confirmResult.confirm(TEST_CODE_A);
@@ -114,8 +133,7 @@ describe('auth() => Phone', () => {
       return Promise.resolve();
     });
 
-    it('successfully runs and adds emiters', async () => {
-      const TEST_PHONE_A = '+447445255123';
+    it('successfully runs and adds emitters', async () => {
       const confirmResult = await firebase.auth().signInWithPhoneNumber(TEST_PHONE_A);
 
       await confirmResult.confirm(TEST_CODE_A);
@@ -135,7 +153,6 @@ describe('auth() => Phone', () => {
     });
 
     it('catches an error and emits an error event', async () => {
-      const TEST_PHONE_A = '+447445255123';
       const confirmResult = await firebase.auth().signInWithPhoneNumber(TEST_PHONE_A);
 
       await confirmResult.confirm(TEST_CODE_A);
